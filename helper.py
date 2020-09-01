@@ -3,7 +3,7 @@
 #
 
 from typing import Union
-
+from numpy import fmax, fmin
 
 class CartForce:
     UNIT_LEFT = -1 # jednostkowe pchnięcie wzóka w lewo [N]
@@ -26,3 +26,22 @@ class Keys(object):
     Q = 113
     R = 114
 
+class Ops(object):
+    
+    def Or(cond1, cond2):
+        return fmax(cond1, cond2)
+    
+    def And(cond1, cond2):
+        return fmin(cond1, cond2)
+    
+    def Aggregate(*conditions):
+        l = len(conditions)
+        if l > 1:
+            cond = conditions[0]
+            for i in range(1, l):
+                cond = Ops.Or(cond, conditions[i])
+                
+            return cond
+        return None
+    
+        
