@@ -3,7 +3,9 @@
 #
 
 from typing import Union
-from numpy import fmax, fmin
+from numpy import fmax, fmin, arange, pi
+
+IsTask_2 = True
 
 class CartForce:
     UNIT_LEFT = -1 # jednostkowe pchnięcie wzóka w lewo [N]
@@ -44,4 +46,14 @@ class Ops(object):
             return cond
         return None
     
-        
+    def Conclude(antecedent, consequent):
+        return Ops.And(antecedent, consequent)
+    
+class RealDomains(object):
+    def __init__(self):
+        self.PendulumAngles = arange(-2 * pi, 2 * pi, pi/24)
+        self.CartVelocities = arange(-3, 3, 0.0625)
+        self.CartPositions = arange(-6, 6, 0.125) if IsTask_2 else None
+        self.CartDeltas = arange(-6, 5, 0.125) if not IsTask_2 else None
+        self.CartForces = arange(-30, 30, 0.625)
+        self.PendulumVelocities = arange(-3, 3, 0.0625)
