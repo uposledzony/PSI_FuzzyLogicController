@@ -4,7 +4,7 @@
 
 from typing import Union
 from numpy import fmax, fmin, arange, pi
-from skfuzzy import trapmf, trimf
+from skfuzzy import trapmf, trimf, interp_membership
 
 IsTask_2 = True
 
@@ -56,14 +56,55 @@ class Ops(object):
                     "high" : trapmf(domain, [mid_high, high, very_high, very_high])
                }
     
+    def GetRules(membership_functions, domain, measured_value):
+        return {f"is_{k}" : interp_membership(domain, v, measured_value) for k,v in membership_functions.items()}
+    
     def Conclude(antecedent, consequent):
         return Ops.And(antecedent, consequent)
-    
+
+class Defaults(object):
+    class Force:
+        VeryHigh = 30
+        High = 10
+        MidHigh = 1
+        Idle = 0
+        MidHighNegative = -MidHigh
+        HighNegative = -High
+        VeryHighNegative = -VeryHigh
+
+    class Distance:
+        VeryFar = 2.5
+        Far = 1
+        MidFar = 0.1
+        InPlace = 0
+        MidFarNegative = -MidFar
+        FarNegative = -Far
+        VeryFarNegative = -VeryFar
+        
+    class Angle:
+        VeryLarge = pi/2
+        Large = pi/4
+        MidLarge = pi/8
+        Zero = 0
+        MidLargeNegative = -MidLarge
+        LargeNegative = -Large
+        VeryLargeNegative = -VeryLarge
+        
+    class Velocity:
+        VeryHigh = 3
+        High = 1
+        MidHigh = 0.3125
+        Idle = 0
+        MidHighNegative = -MidHigh
+        HighNegative = -High
+        VeryHighNegative = -VeryHigh
+        
+
 class RealDomains(object):
     def __init__(self):
         self.PendulumAngles = arange(-2 * pi, 2 * pi, pi/24)
         self.CartVelocities = arange(-3, 3, 0.0625)
         self.CartPositions = arange(-6, 6, 0.125) if IsTask_2 else None
-        self.CartDeltas = arange(-6, 5, 0.125) if not IsTask_2 else None
+        self.CartDeltas = arange(-6, 6, 0.125) if not IsTask_2 else None
         self.CartForces = arange(-30, 30, 0.625)
         self.PendulumVelocities = arange(-3, 3, 0.0625)
