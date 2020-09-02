@@ -6,7 +6,7 @@
 
 import gym # Instalacja: https://github.com/openai/gym
 import time
-from helper import HumanControl, Keys, CartForce
+from helper import HumanControl, Keys, CartForce, RealDomains, Ops, Defaults
 import matplotlib.pyplot as plt
 
 
@@ -17,6 +17,7 @@ import skfuzzy as fuzz
 # przygotowanie środowiska
 #
 control = HumanControl()
+domains = RealDomains()
 env = gym.make('gym_PSI:CartPole-v2')
 env.reset()
 env.render()
@@ -62,6 +63,26 @@ ax0.legend()
 plt.tight_layout()
 plt.show()
 """
+
+fuzzy_cart_force_signal = Ops.GenerateFuzzyMemberships(domains.CartForces, Defaults.Forces.VeryHigh, Defaults.Forces.High,
+                                                  Defaults.Forces.MidHigh, Defaults.Forces.Idle, Defaults.Forces.MidHighNegative,
+                                                  Defaults.Forces.HighNegative, Defaults.Forces.VeryHighNegative)
+
+fuzzy_cart_distance_signal = Ops.GenerateFuzzyMemberships(domains.CartPositions, Defaults.Distances.VeryFar, Defaults.Distances.Far,
+                                                          Defaults.Distances.MidFar, Defaults.Distances.InPlace, Defaults.Distances.MidFarNegative,
+                                                          Defaults.Distances.FarNegative, Defaults.Distances.VeryFarNegative)
+
+fuzzy_pendulum_angle_signal = Ops.GenerateFuzzyMemberships(domains.PendulumAngles, Defaults.Angle.VeryLarge, Defaults.Angle.Large, 
+                                                           Defaults.Angle.MidLarge, Defaults.Angle.Zero, Defaults.Angle.MidLargeNegative,
+                                                           Defaults.Angle.LargeNegative, Defaults.Angle.VeryLargeNegative)
+
+fuzzy_cart_velocity_signal = Ops.GenerateFuzzyMemberships(domains.CartVelocities, Defaults.Velocity.VeryHigh, Defaults.Velocity.High,
+                                                          Defaults.Velocity.MidHigh, Defaults.Velocity.Idle, Defaults.Velocity.MidHighNegative, 
+                                                          Defaults.Velocity.HighNegative, Defaults.Velocity.VeryHighNegative)
+
+fuzzy_tip_velocity_signal = Ops.GenerateFuzzyMemberships(domains.PendulumVelocities, Defaults.Velocity.VeryHigh, Defaults.Velocity.High,
+                                                          Defaults.Velocity.MidHigh, Defaults.Velocity.Idle, Defaults.Velocity.MidHighNegative, 
+                                                          Defaults.Velocity.HighNegative, Defaults.Velocity.VeryHighNegative)
 
 #########################################################
 # KONIEC KODU INICJUJĄCEGO
@@ -113,7 +134,7 @@ while not control.WantExit:
     """
 
     cart_position, cart_velocity, pole_angle, tip_velocity = env.state # Wartości zmierzone
-
+    
 
     """
     
