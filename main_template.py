@@ -9,10 +9,6 @@ import time
 from helper import HumanControl, Keys, CartForce, RealDomains, Ops, Defaults
 import matplotlib.pyplot as plt
 
-
-import numpy as np
-import skfuzzy as fuzz
-
 #
 # przygotowanie środowiska
 #

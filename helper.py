@@ -4,7 +4,7 @@
 
 from typing import Union
 from numpy import fmax, fmin, arange, pi
-from skfuzzy import trapmf, trimf, interp_membership
+from skfuzzy import trapmf, trimf, interp_membership, defuzz
 
 IsTask_2 = True
 
@@ -62,6 +62,9 @@ class Ops(object):
     def Conclude(antecedent, consequent):
         return Ops.And(antecedent, consequent)
 
+    def Defuzz(domain, aggregated_conclusions, mode='Centroid'):
+        return defuzz(domain, aggregated_conclusions, mode)
+    
 class Defaults(object):
     class Force:
         VeryHigh = 30
