@@ -4,6 +4,7 @@
 
 from typing import Union
 from numpy import fmax, fmin, arange, pi
+from skfuzzy import trapmf, trimf
 
 IsTask_2 = True
 
@@ -45,6 +46,15 @@ class Ops(object):
                 
             return cond
         return None
+    
+    def GenerateFuzzyMemberships(domain, very_high, high, mid_high, mid, mid_low, low, very_low):
+        return {
+                    "low" : trapmf(domain, [very_low, very_low, low, mid_low]),
+                    "mid_low": trimf(domain, [low, mid_low, mid]),
+                    "mid" : trimf(domain, [mid_low, mid, mid_high]),
+                    "mid_high" : trimf(domain, [mid, mid_high, high]),
+                    "high" : trapmf(domain, [mid_high, high, very_high, very_high])
+               }
     
     def Conclude(antecedent, consequent):
         return Ops.And(antecedent, consequent)
