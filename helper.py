@@ -6,7 +6,6 @@ from typing import Union
 from numpy import fmax, fmin, arange, pi
 from skfuzzy import trapmf, trimf, interp_membership, defuzz
 
-IsTask_2 = True
 
 class CartForce:
     UNIT_LEFT = -1 # jednostkowe pchnięcie wzóka w lewo [N]
@@ -62,9 +61,8 @@ class Ops(object):
             
 class RealDomains(object):
     def __init__(self):
-        self.PendulumAngles = arange(-2 * pi, 2 * pi, pi/96)
+        self.PendulumAngles = arange(-pi, pi, pi/512)
         self.CartVelocities = arange(-3, 3, 0.01)
-        self.CartPositions = arange(-2.5, 2.5, 0.01) if IsTask_2 else None
-        self.CartDeltas = arange(-2.5, 2.5, 0.01) if not IsTask_2 else None
+        self.CartPositions = arange(-2.5, 2.5, 0.01)
         self.CartForces = arange(-30, 30, 0.01)
         self.PendulumVelocities = arange(-1.5, 1.5, 0.01)

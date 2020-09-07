@@ -17,17 +17,24 @@ domains = RealDomains()
 env = gym.make('gym_PSI:CartPole-v2')
 env.reset()
 env.render()
-
-
+desired_position = 0.0
+task2 = False
 def on_key_press(key: int, mod: int):
     global control
+    global desired_position
     force = 10
     if key == Keys.LEFT:
-        control.UserForce = force * CartForce.UNIT_LEFT # krok w lewo
+        if control.WantPause:
+            desired_position = desired_position - 0.5 if desired_position >= -2.0 else -2.5
+        else:
+            control.UserForce = force * CartForce.UNIT_LEFT # krok w lewo
     if key == Keys.RIGHT:
-        control.UserForce = force * CartForce.UNIT_RIGHT # krok w prawo
+        if control.WantPause:
+            desired_position = desired_position + 0.5 if desired_position <= 2.0 else 2.5
+        else:
+            control.UserForce = force * CartForce.UNIT_RIGHT # krok w prawo
     if key == Keys.P: # pauza
-        control.WantPause = True
+        control.WantPause = ~control.WantPause
     if key == Keys.R: # restart
         control.WantReset = True
     if key == Keys.ESCAPE or key == Keys.Q: # wyjście
@@ -103,8 +110,8 @@ while not control.WantExit:
     # Pierwsze wciśnięcie klawisza 'p' wstrzymuje; drugie wciśnięcie 'p' wznawia symulację.
     #
     if control.WantPause:
-        control.WantPause = False
-        while not control.WantPause:
+        
+        while control.WantPause:
             time.sleep(0.5)
             env.render()
         control.WantPause = False
@@ -184,7 +191,7 @@ while not control.WantExit:
     fuzzy_response = CartForce.IDLE_FORCE # do zmiennej fuzzy_response zapisz wartość siły, jaką chcesz przyłożyć do wózka.
     
     #signal activations
-    fuzzy_cart_distance_signal_activations = Ops.GetRules(fuzzy_cart_distance_signal, domains.CartPositions, cart_position)
+    fuzzy_cart_distance_signal_activations = Ops.GetRules(fuzzy_cart_distance_signal, domains.CartPositions, desired_position - cart_position)
     fuzzy_cart_velocity_signal_activations = Ops.GetRules(fuzzy_cart_velocity_signal, domains.CartVelocities, cart_velocity)
     fuzzy_pendulum_angle_signal_activations = Ops.GetRules(fuzzy_pendulum_angle_signal, domains.PendulumAngles, pole_angle)
     fuzzy_tip_velocity_signal_activations = Ops.GetRules(fuzzy_tip_velocity_signal, domains.PendulumVelocities, tip_velocity)
@@ -196,7 +203,7 @@ while not control.WantExit:
     idle_force_thesis = Ops.Aggregate(Ops.And(fuzzy_pendulum_angle_signal_activations["is_Zero"], fuzzy_tip_velocity_signal_activations["is_Idle"]),
                                       Ops.And(fuzzy_pendulum_angle_signal_activations["is_Large"], fuzzy_tip_velocity_signal_activations["is_HighNegative"]),
                                       Ops.And(fuzzy_pendulum_angle_signal_activations["is_LargeNegative"], fuzzy_tip_velocity_signal_activations["is_High"]),)
-    
+    #left
     mid_left_thesis = Ops.Aggregate(Ops.And(fuzzy_pendulum_angle_signal_activations["is_Zero"], fuzzy_tip_velocity_signal_activations["is_MidNegative"]),
                                       Ops.And(fuzzy_pendulum_angle_signal_activations["is_MidNegative"], fuzzy_tip_velocity_signal_activations["is_Idle"]),
                                       Ops.And(fuzzy_pendulum_angle_signal_activations["is_MidNegative"], fuzzy_tip_velocity_signal_activations["is_SmallNegative"]),
@@ -204,31 +211,69 @@ while not control.WantExit:
     mid_high_left_thesis = Ops.Aggregate(Ops.And(fuzzy_pendulum_angle_signal_activations["is_Zero"], fuzzy_tip_velocity_signal_activations["is_HighNegative"]),
                                       Ops.And(fuzzy_pendulum_angle_signal_activations["is_MidLargeNegative"], fuzzy_tip_velocity_signal_activations["is_Idle"]),
                                       Ops.And(fuzzy_pendulum_angle_signal_activations["is_MidNegative"], fuzzy_tip_velocity_signal_activations["is_MidNegative"]),)
-    mid_light_left_thesis = Ops.Aggregate(Ops.And(fuzzy_pendulum_angle_signal_activations["is_Zero"], fuzzy_tip_velocity_signal_activations["is_SmallNegative"]),
-                                      Ops.And(fuzzy_pendulum_angle_signal_activations["is_Small"], fuzzy_tip_velocity_signal_activations["is_MidNegative"]))
+    mid_light_left_thesis = Ops.Aggregate(Ops.And(fuzzy_pendulum_angle_signal_activations["is_Zero"], fuzzy_tip_velocity_signal_activations["is_SmallNegative"]))
     high_left_thesis = Ops.Aggregate(Ops.And(fuzzy_pendulum_angle_signal_activations["is_LargeNegative"], fuzzy_tip_velocity_signal_activations["is_SmallNegative"]),
                                       Ops.And(fuzzy_pendulum_angle_signal_activations["is_MidLargeNegative"], fuzzy_tip_velocity_signal_activations["is_MidNegative"]),
                                       Ops.And(fuzzy_pendulum_angle_signal_activations["is_SmallNegative"], fuzzy_tip_velocity_signal_activations["is_HighNegative"]),
                                       Ops.And(fuzzy_pendulum_angle_signal_activations["is_MidNegative"], fuzzy_tip_velocity_signal_activations["is_MidNegative"]),)
     light_left_thesis = Ops.And(fuzzy_pendulum_angle_signal_activations["is_SmallNegative"], fuzzy_tip_velocity_signal_activations["is_Idle"])
     
+    
+    #right
     mid_right_thesis = Ops.Aggregate(Ops.And(fuzzy_pendulum_angle_signal_activations["is_Zero"], fuzzy_tip_velocity_signal_activations["is_Mid"]),
                                       Ops.And(fuzzy_pendulum_angle_signal_activations["is_Mid"], fuzzy_tip_velocity_signal_activations["is_Idle"]),
                                       Ops.And(fuzzy_pendulum_angle_signal_activations["is_Mid"], fuzzy_tip_velocity_signal_activations["is_Small"]),
                                       Ops.And(fuzzy_pendulum_angle_signal_activations["is_Small"], fuzzy_tip_velocity_signal_activations["is_Small"]))
-    mid_light_right_thesis = Ops.Aggregate(Ops.And(fuzzy_pendulum_angle_signal_activations["is_Zero"], fuzzy_tip_velocity_signal_activations["is_High"]),
+    mid_high_right_thesis = Ops.Aggregate(Ops.And(fuzzy_pendulum_angle_signal_activations["is_Zero"], fuzzy_tip_velocity_signal_activations["is_High"]),
                                       Ops.And(fuzzy_pendulum_angle_signal_activations["is_MidLarge"], fuzzy_tip_velocity_signal_activations["is_Idle"]),
                                       Ops.And(fuzzy_pendulum_angle_signal_activations["is_Mid"], fuzzy_tip_velocity_signal_activations["is_Mid"]),)
-    mid_high_right_thesis = Ops.Aggregate(Ops.And(fuzzy_pendulum_angle_signal_activations["is_Zero"], fuzzy_tip_velocity_signal_activations["is_Small"]),
-                                      Ops.And(fuzzy_pendulum_angle_signal_activations["is_SmallNegative"], fuzzy_tip_velocity_signal_activations["is_Mid"]))
-    light_right_thesis = Ops.Aggregate(Ops.And(fuzzy_pendulum_angle_signal_activations["is_Large"], fuzzy_tip_velocity_signal_activations["is_Small"]),
+    mid_light_right_thesis = Ops.Aggregate(Ops.And(fuzzy_pendulum_angle_signal_activations["is_Zero"], fuzzy_tip_velocity_signal_activations["is_Small"]))
+    high_right_thesis = Ops.Aggregate(Ops.And(fuzzy_pendulum_angle_signal_activations["is_Large"], fuzzy_tip_velocity_signal_activations["is_Small"]),
                                       Ops.And(fuzzy_pendulum_angle_signal_activations["is_MidLarge"], fuzzy_tip_velocity_signal_activations["is_Mid"]),
                                       Ops.And(fuzzy_pendulum_angle_signal_activations["is_Small"], fuzzy_tip_velocity_signal_activations["is_High"]),
                                       Ops.And(fuzzy_pendulum_angle_signal_activations["is_Mid"], fuzzy_tip_velocity_signal_activations["is_Mid"]),)
-    high_right_thesis = Ops.And(fuzzy_pendulum_angle_signal_activations["is_Small"], fuzzy_tip_velocity_signal_activations["is_Idle"])
+    light_right_thesis = Ops.And(fuzzy_pendulum_angle_signal_activations["is_Small"], fuzzy_tip_velocity_signal_activations["is_Idle"])
     
     
-
+    #cart desired postion stabilization
+    if not task2:
+        idle_force_thesis1 = Ops.And(Ops.And(fuzzy_pendulum_angle_signal_activations["is_Zero"], fuzzy_tip_velocity_signal_activations["is_Idle"]), 
+                                     Ops.And(fuzzy_cart_distance_signal_activations["is_InPlace"], fuzzy_cart_velocity_signal_activations["is_Idle"]))
+        
+        mid_high_right_thesis1 = Ops.And(Ops.And(fuzzy_pendulum_angle_signal_activations["is_Zero"], fuzzy_tip_velocity_signal_activations["is_Idle"]),Ops.Aggregate(
+                                     Ops.And(fuzzy_cart_distance_signal_activations["is_FarNegative"], fuzzy_cart_velocity_signal_activations["is_SmallNegative"]),
+                                     Ops.And(fuzzy_cart_distance_signal_activations["is_MidFarNegative"], fuzzy_cart_velocity_signal_activations["is_MidNegative"])))
+        
+        mid_high_left_thesis1 = Ops.And(Ops.And(fuzzy_pendulum_angle_signal_activations["is_Zero"], fuzzy_tip_velocity_signal_activations["is_Idle"]),Ops.Aggregate(
+                                     Ops.And(fuzzy_cart_distance_signal_activations["is_Far"], fuzzy_cart_velocity_signal_activations["is_Small"]),
+                                     Ops.And(fuzzy_cart_distance_signal_activations["is_MidFar"], fuzzy_cart_velocity_signal_activations["is_Mid"])))
+        
+        mid_right_thesis1 = Ops.And(Ops.And(fuzzy_pendulum_angle_signal_activations["is_Zero"], fuzzy_tip_velocity_signal_activations["is_Idle"]),
+                                     Ops.And(fuzzy_cart_distance_signal_activations["is_MidNegative"], fuzzy_cart_velocity_signal_activations["is_SmallNegative"]))
+        mid_left_thesis1 = Ops.And(Ops.And(fuzzy_pendulum_angle_signal_activations["is_Zero"], fuzzy_tip_velocity_signal_activations["is_Idle"]),
+                                     Ops.And(fuzzy_cart_distance_signal_activations["is_Mid"], fuzzy_cart_velocity_signal_activations["is_Small"]))
+        
+        light_right_thesis1 = Ops.And(Ops.And(fuzzy_pendulum_angle_signal_activations["is_Zero"], fuzzy_tip_velocity_signal_activations["is_Idle"]),
+                                     Ops.And(fuzzy_cart_distance_signal_activations["is_CloseNegative"], fuzzy_cart_velocity_signal_activations["is_SmallNegative"]))
+        light_left_thesis1 = Ops.And(Ops.And(fuzzy_pendulum_angle_signal_activations["is_Zero"], fuzzy_tip_velocity_signal_activations["is_Idle"]),
+                                     Ops.And(fuzzy_cart_distance_signal_activations["is_Close"], fuzzy_cart_velocity_signal_activations["is_Small"]))
+        
+        mid_light_right_thesis1 = Ops.And(Ops.And(fuzzy_pendulum_angle_signal_activations["is_Zero"], fuzzy_tip_velocity_signal_activations["is_Idle"]), Ops.Aggregate(
+                                     Ops.And(fuzzy_cart_distance_signal_activations["is_MidNegative"], fuzzy_cart_velocity_signal_activations["is_Idle"]),
+                                     Ops.And(fuzzy_cart_distance_signal_activations["is_MidFarNegative"], fuzzy_cart_velocity_signal_activations["is_Small"])))
+        mid_light_left_thesis1 = Ops.And(Ops.And(fuzzy_pendulum_angle_signal_activations["is_Zero"], fuzzy_tip_velocity_signal_activations["is_Idle"]),Ops.Aggregate(
+                                     Ops.And(fuzzy_cart_distance_signal_activations["is_Mid"], fuzzy_cart_velocity_signal_activations["is_Idle"]),
+                                     Ops.And(fuzzy_cart_distance_signal_activations["is_MidFar"], fuzzy_cart_velocity_signal_activations["is_SmallNegative"])))
+        
+        idle_force_thesis = Ops.Aggregate(idle_force_thesis, idle_force_thesis1)
+        light_left_thesis = Ops.Aggregate(light_left_thesis, light_left_thesis1)
+        light_right_thesis = Ops.Aggregate(light_right_thesis, light_right_thesis1)
+        mid_light_left_thesis = Ops.Aggregate(mid_light_left_thesis1, mid_light_left_thesis)
+        mid_light_right_thesis = Ops.Aggregate(mid_light_right_thesis, mid_light_right_thesis1)
+        mid_left_thesis = Ops.Aggregate(mid_left_thesis, mid_left_thesis1)
+        mid_right_thesis = Ops.Aggregate(mid_right_thesis1, mid_right_thesis)
+        mid_high_left_thesis = Ops.Aggregate(mid_high_left_thesis, mid_high_left_thesis1)
+        mid_high_right_thesis = Ops.Aggregate(mid_high_right_thesis, mid_high_right_thesis1)
     #conclusions
     idle_conclusion = Ops.Conclude(idle_force_thesis, fuzzy_cart_force_signal["Idle"])
     
@@ -244,6 +289,7 @@ while not control.WantExit:
     light_right_conclusion = Ops.Conclude(light_right_thesis, fuzzy_cart_force_signal["Light"])
     mid_light_right_conclusion = Ops.Conclude(mid_light_right_thesis, fuzzy_cart_force_signal["MidLight"])
     
+
 
     #aggregate conclusions
     aggregated_conclusions = Ops.Aggregate(idle_conclusion, mid_left_conclusion,
@@ -279,7 +325,7 @@ while not control.WantExit:
 
     # Wyświetl stan środowiska oraz wartość odpowiedzi regulatora na ten stan.
     print(
-        f"cpos={cart_position:8.4f}, cvel={cart_velocity:8.4f}, pang={pole_angle:8.4f}, tvel={tip_velocity:8.4f}, force={applied_force:8.4f}")
+        f"cpos={desired_position-cart_position:8.4f}, cvel={cart_velocity:8.4f}, pang={pole_angle:8.4f}, tvel={tip_velocity:8.4f}, force={applied_force:8.4f}")
 
     # Wykonaj krok symulacji
     env.step(applied_force)
