@@ -9,10 +9,10 @@ from numpy import pi
 class Force:
     VeryHigh = 30
     High = 10
-    MidHigh = 2
-    Mid = 1
-    MidLight = 0.1
-    Light = 0.01
+    MidHigh = 8
+    Mid = 2
+    MidLight = 1
+    Light = 0.5
     Idle = 0
     HighVec = [MidHigh, High, VeryHigh, VeryHigh]
     MidHighVec = [Mid, MidHigh, High]
