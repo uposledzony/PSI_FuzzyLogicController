@@ -12,7 +12,7 @@ class Force:
     MidHigh = 8
     Mid = 5
     MidLight = 1.3
-    Light = 0.5
+    Light = 0.3
     Idle = 0.0
     HighVec = [MidHigh, High, VeryHigh, VeryHigh]
     MidHighVec = [Mid, MidHigh, High]
