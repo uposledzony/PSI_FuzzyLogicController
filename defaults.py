@@ -10,7 +10,7 @@ class Force:
     VeryHigh = 30
     High = 10
     MidHigh = 8
-    Mid = 5
+    Mid = 3
     MidLight = 1.3
     Light = 0.3
     Idle = 0.0
@@ -22,11 +22,11 @@ class Force:
     IdleVec = [-Light, Idle, Light]
 
 class Distance:
-    VeryFar = 2.5
-    Far = 1.7
-    MidFar = 1.3
-    Mid = 0.5
-    Close = 0.01
+    VeryFar = 1.5
+    Far = 1
+    MidFar = 0.5
+    Mid = 0.2
+    Close = 0.1
     InPlace = 0
     FarVec=[MidFar, Far, VeryFar, VeryFar]
     MidFarVec=[Mid, MidFar, Far]
@@ -50,7 +50,7 @@ class Angle:
 class Velocity:
     VeryHigh = 3
     High = 1.5
-    Mid = 0.4
+    Mid = 0.6
     Small = 0.016125
     Idle = 0
     HighVec=[Mid, High, VeryHigh]
